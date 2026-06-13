@@ -1,0 +1,43 @@
+# Virtual environment
+
+venv/
+.venv/
+env/
+
+# Python cache
+
+**pycache**/
+_.pyc
+_.pyo
+\*.pyd
+.Python
+
+# Environment files
+
+.env
+
+# Git
+
+.git/
+.gitignore
+
+# VS Code
+
+.vscode/
+
+# Logs
+
+\*.log
+
+# ChromaDB (will be created fresh)
+
+backend/rag/chroma_db/
+
+# Uploads (will be created fresh)
+
+uploads/
+
+# OS files
+
+.DS_Store
+Thumbs.db
