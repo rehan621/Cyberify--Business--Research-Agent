@@ -219,7 +219,11 @@ with left:
         r = st.session_state.current_report
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
         st.markdown('<div class="section-header">📄 Research Report</div>', unsafe_allow_html=True)
+        conf    = r.get("confidence_score", 0) or 0
         sources = r.get("sources") or []
+        c1, c2  = st.columns(2)
+        with c1: st.metric("Confidence Score", f"{conf:.0%}")
+        with c2: st.metric("Sources Found", len(sources))
         st.markdown(r.get("report", "No report."))
         if sources:
             with st.expander("📎 Sources"):
