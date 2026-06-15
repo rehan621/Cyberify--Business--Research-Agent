@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from api_client import get_me, start_research, get_research_status, get_history, get_workspaces, delete_research, get_live_progress, get_headers
+from api_client import get_me, start_research, get_research_status, get_history, get_workspaces, delete_research, get_live_progress, get_headers, API_BASE
 
 st.set_page_config(
     page_title="Dashboard — Cyberify",
@@ -219,7 +219,9 @@ with left:
         r = st.session_state.current_report
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
         st.markdown('<div class="section-header">📄 Research Report</div>', unsafe_allow_html=True)
+        conf    = r.get("confidence_score", 0) or 0
         sources = r.get("sources") or []
+        st.metric("Confidence Score", f"{conf:.0%}")
         st.markdown(r.get("report", "No report."))
         if sources:
             with st.expander("📎 Sources"):
@@ -229,7 +231,7 @@ with left:
         with col_pdf:
             if st.button("⬇ Download PDF", use_container_width=True, key=f"pdf_{r['id']}"):
                 import requests as req
-                pdf_res = req.get(f"http://127.0.0.1:8000/api/export/pdf/{r['id']}", headers=get_headers())
+                pdf_res = req.get(f"{API_BASE}/api/export/pdf/{r['id']}", headers=get_headers())
                 if pdf_res.status_code == 200:
                     safe_name = r.get("query","research")[:30].strip().replace(" ","_").replace("/","-")
                     st.download_button("📥 Save PDF", data=pdf_res.content,

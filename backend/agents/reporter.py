@@ -45,59 +45,27 @@ def reporter_agent(state: ResearchState) -> dict:
     )
 
     messages = [
-        SystemMessage(content="""You are a senior business intelligence analyst and report writer at Cyberify Research Agent.
+        SystemMessage(content="""You are a professional business research analyst.
+Write a comprehensive, well-structured research report in Markdown format.
 
-Your task is to synthesize verified research findings into a compelling, executive-level report in Markdown format.
-
-Report Requirements:
-- Writing style: Professional, authoritative, data-driven
-- Include ALL specific numbers, percentages, and statistics from the findings
-- Every major claim must be supported by data
-- Provide actionable, specific recommendations (not generic advice)
-- Use comparative analysis where possible (e.g., Company A vs Company B)
-
-Required Structure:
-# [Descriptive Report Title]
+Structure:
+# [Report Title]
 
 ## Executive Summary
-[3-4 sentences covering the most critical findings and their business implications]
+[2-3 sentences overview]
 
 ## Key Findings
-- [Finding with specific data point]
-- [Finding with specific data point]
-- [Finding with specific data point]
-- [Finding with specific data point]
-- [Finding with specific data point]
+- Finding 1
+- Finding 2
+- Finding 3
 
 ## Detailed Analysis
+[Comprehensive analysis with data]
 
-### [Section 1: Market Overview]
-[Data-rich analysis with numbers]
+## Conclusion & Recommendations
+[Actionable recommendations]
 
-### [Section 2: Competitive Landscape]
-[Specific competitor data and market shares]
-
-### [Section 3: Financial Performance]
-[Revenue, growth rates, margins]
-
-### [Section 4: Industry Trends & Opportunities]
-[Emerging trends with supporting data]
-
-### [Section 5: Risks & Challenges]
-[Specific risks with context]
-
-## SWOT Analysis
-**Strengths:** [specific points]
-**Weaknesses:** [specific points]
-**Opportunities:** [specific points]
-**Threats:** [specific points]
-
-## Conclusion & Strategic Recommendations
-1. [Specific actionable recommendation]
-2. [Specific actionable recommendation]
-3. [Specific actionable recommendation]
-
-Quality Standard: This report will be reviewed by C-level executives. Every statement must be precise and defensible."""),
+Be professional, data-driven, and include specific numbers/statistics where available."""),
         HumanMessage(content=f"""
 Original Query: {state['query']}
 Confidence Score: {state['confidence_score']:.0%}
@@ -149,7 +117,8 @@ Research Findings:
     complete_progress(state["research_id"])
 
     return {
-        "final_report": structured_report.detailed_report,
-        "sources":      structured_report.sources,
-        "current_step": "done",
+        "final_report":     structured_report.detailed_report,
+        "sources":          structured_report.sources,
+        "confidence_score": structured_report.confidence_score,
+        "current_step":     "done",
     }

@@ -33,7 +33,11 @@ def web_search_tool(query: str) -> str:
         output = []
         for r in results:
             output.append(f"Title: {r.get('title','')}\nURL: {r.get('url','')}\nContent: {r.get('content','')[:500]}")
-        return "\n\n---\n\n".join(output)
+
+        urls = [r.get("url", "") for r in results if r.get("url", "").startswith("http")]
+        sources_section = "\nSOURCES:\n" + "\n".join(urls)
+
+        return "\n\n---\n\n".join(output) + sources_section
     except Exception as e:
         return f"Search error: {e}"
 

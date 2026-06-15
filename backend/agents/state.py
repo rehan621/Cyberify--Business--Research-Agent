@@ -27,7 +27,7 @@ class ResearchState(TypedDict):
 
     # Reporter output
     final_report: str
-    sources:      List[str]
+    sources:      Annotated[List[str], operator.add]
 
     # Control flow
     current_step: str

@@ -11,8 +11,8 @@ def researcher_agent(state: ResearchState) -> dict:
     from ..memory.progress_tracker import update_progress
     from ..tools.research_tools import web_search_tool, calculator_tool, file_retrieval_tool
 
-    revision_count   = state.get("revision_count", 0)
-    needs_revision   = state.get("needs_revision", False)
+    revision_count    = state.get("revision_count", 0)
+    needs_revision    = state.get("needs_revision", False)
     revision_feedback = state.get("revision_feedback", "")
 
     if needs_revision and revision_feedback:
@@ -44,6 +44,7 @@ def researcher_agent(state: ResearchState) -> dict:
     }
 
     all_findings = []
+    all_sources  = []  # Global sources list - loop se bahar
     total = len(state["research_plan"])
 
     for i, sub_question in enumerate(state["research_plan"]):
@@ -57,36 +58,24 @@ def researcher_agent(state: ResearchState) -> dict:
             percent=pct,
         )
 
-        # Revision feedback system prompt mein include karo
         revision_note = ""
         if needs_revision and revision_feedback:
             revision_note = f"\n\nIMPORTANT - Previous attempt was insufficient. Improve based on this feedback:\n{revision_feedback}"
 
         messages = [
-            SystemMessage(content=f"""You are a senior business research analyst at Cyberify Research Agent with access to powerful tools.
+            SystemMessage(content=f"""You are a thorough research analyst with tools.
+Use tools strategically:
+- web_search_tool: for current web information and facts
+- calculator_tool: for numerical calculations, percentages, financial analysis
+- file_retrieval_tool: for user uploaded documents (user_id={state['user_id']})
 
-Your mission is to gather comprehensive, data-rich intelligence on the given research question.
-
-Tool Usage Strategy:
-- web_search_tool: ALWAYS use first — search for latest statistics, news, and market data (2023-2025)
-- calculator_tool: Use when you need to calculate growth rates, market share percentages, revenue comparisons, or any financial ratios
-- file_retrieval_tool: ALWAYS check user's uploaded documents (user_id={state['user_id']}) — they may contain proprietary data
-
-Research Standards:
-- Prioritize recent data (2024-2025 preferred)
-- Include specific numbers, percentages, and statistics whenever possible
-- Cite the source context for key data points
-- If one search is insufficient, search again with refined keywords
-- Cross-reference data from multiple sources for accuracy
-
-{revision_note}
-
-Deliver thorough, evidence-based findings that a business executive would find actionable."""),
+Always use at least web_search_tool. Use calculator_tool if numbers/percentages involved.
+Provide comprehensive, data-rich answers.{revision_note}"""),
             HumanMessage(content=sub_question),
         ]
 
         tool_results = []
-        sources      = []
+        sources      = []  # Per question sources
         tools_used   = []
 
         for _ in range(5):
@@ -114,20 +103,30 @@ Deliver thorough, evidence-based findings that a business executive would find a
                     tool_args["user_id"] = state["user_id"]
 
                 try:
-                    result     = tool_map[tool_name].invoke(tool_args)
-                    result_str = str(result)[:1500]
+                    result      = tool_map[tool_name].invoke(tool_args)
+                    result_full = str(result)
+                    result_str  = result_full[:3000]
                 except Exception as e:
-                    result_str = f"Tool error: {e}"
+                    result_full = f"Tool error: {e}"
+                    result_str  = result_full
 
                 messages.append(ToolMessage(content=result_str, tool_call_id=tc["id"]))
                 tool_results.append({"tool": tool_name, "result": result_str})
                 tools_used.append(tool_name)
 
                 if tool_name == "web_search_tool":
-                    for line in result_str.split("\n"):
-                        if line.startswith("URL:"):
+                    in_sources = False
+                    for line in result_full.split("\n"):
+                        line = line.strip()
+                        if line == "SOURCES:":
+                            in_sources = True
+                            continue
+                        if in_sources and line.startswith("http"):
+                            if line not in sources:
+                                sources.append(line)
+                        elif line.startswith("URL:"):
                             url = line.replace("URL:", "").strip()
-                            if url and url not in sources:
+                            if url and url.startswith("http") and url not in sources:
                                 sources.append(url)
 
         # Summary
@@ -141,6 +140,11 @@ Deliver thorough, evidence-based findings that a business executive would find a
         else:
             last = messages[-1]
             summary = last.content if hasattr(last, 'content') and last.content else "No data found."
+
+        # Add this question's sources to global list
+        for src in sources:
+            if src and src not in all_sources:
+                all_sources.append(src)
 
         all_findings.append({
             "question":   sub_question,
@@ -166,8 +170,11 @@ Deliver thorough, evidence-based findings that a business executive would find a
         percent=65,
     )
 
+    print(f"[Researcher] Total sources collected: {len(all_sources)}")
+
     return {
         "raw_findings":   all_findings,
+        "sources":        all_sources,
         "revision_count": revision_count + (1 if needs_revision else 0),
         "needs_revision": False,
         "current_step":   "verifier",

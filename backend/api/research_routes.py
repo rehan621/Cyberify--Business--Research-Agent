@@ -62,6 +62,9 @@ def run_research_task(research_id: int, query: str, user_id: int):
         record.report           = result.get("final_report", "No report generated.")
         record.sources          = result.get("sources", [])
         record.confidence_score = result.get("confidence_score", 0.0)
+        print(f"[Debug] Sources: {result.get('sources', [])}")
+        print(f"[Debug] Result keys: {list(result.keys())}")
+
         record.status           = "completed"
         record.completed_at     = datetime.utcnow()
         db.commit()

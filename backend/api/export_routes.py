@@ -97,10 +97,10 @@ def markdown_to_pdf(report_text: str, query: str, confidence: float, sources: li
 
     # Meta info table
     meta_data = [
-        ["Generated", __import__('datetime').datetime.now().strftime("%B %d, %Y %H:%M")],
-        ["Confidence Score", f"{confidence:.0%}"],
-        ["Sources Found", str(len(sources) if sources else 0)],
-    ]
+    ["Generated", datetime.now().strftime("%B %d, %Y %H:%M")],
+    ["Confidence Score", f"{confidence:.0%}"],
+]
+    
     meta_table = Table(meta_data, colWidths=[4*cm, 12*cm])
     meta_table.setStyle(TableStyle([
         ("BACKGROUND",  (0, 0), (0, -1), HexColor("#F3F4F6")),
