@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import re
  
 
@@ -97,7 +97,7 @@ def markdown_to_pdf(report_text: str, query: str, confidence: float, sources: li
 
     # Meta info table
     meta_data = [
-    ["Generated", datetime.now().strftime("%B %d, %Y %H:%M")],
+    ["Generated", datetime.now(timezone(timedelta(hours=5))).strftime("%B %d, %Y %H:%M PKT")],
     ["Confidence Score", f"{confidence:.0%}"],
 ]
     
